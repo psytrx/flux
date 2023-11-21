@@ -19,7 +19,8 @@ impl Sampler for UniformRandomSampler {
         (0..self.samples_per_pixel)
             .map(|_| {
                 let p_film = p_raster + rand::Rng::gen::<glam::Vec2>(rng);
-                CameraSample { p_film }
+                let p_lens = rand::Rng::gen::<glam::Vec2>(rng);
+                CameraSample { p_film, p_lens }
             })
             .collect()
     }

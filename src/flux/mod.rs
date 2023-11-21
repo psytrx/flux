@@ -16,7 +16,7 @@ use ray::*;
 use crate::flux::materials::{DielectricMaterial, MetalMaterial};
 
 use self::{
-    cameras::DummyCamera,
+    cameras::PerspectiveCamera,
     materials::MatteMaterial,
     primitive::Primitive,
     samplers::{Sampler, UniformRandomSampler},
@@ -73,7 +73,18 @@ pub fn render_film(resolution: glam::UVec2, max_depth: u32) -> Film {
             ]
         };
 
-        let camera = Box::new(DummyCamera::new(resolution));
+        let camera = {
+            let look_from = glam::vec3(0.0, 2.5, -5.0);
+            let look_at = glam::vec3(0.0, 1.5, 0.0);
+            Box::new(PerspectiveCamera::new(
+                resolution,
+                look_from,
+                look_at,
+                60.0,
+                0.025,
+                look_at.distance(look_from),
+            ))
+        };
 
         Scene::new(primitives, camera)
     };
@@ -88,7 +99,7 @@ pub fn render_film(resolution: glam::UVec2, max_depth: u32) -> Film {
             let cam_samples = sampler.camera_samples(p_raster, &mut rng);
 
             for sample in cam_samples {
-                let ray = scene.camera.ray(sample.p_film);
+                let ray = scene.camera.ray(&sample);
                 let li = ray_color(&scene, &ray, &mut rng, max_depth);
                 film.add_sample(p_raster, li);
             }
@@ -119,4 +130,26 @@ fn background(ray: &Ray) -> glam::Vec3 {
     let unit_direction = ray.direction.normalize();
     let a = 0.5 * (unit_direction.y + 1.0);
     (1.0 - a) * glam::Vec3::ONE + a * glam::vec3(0.5, 0.7, 1.0)
+}
+
+fn uniform_sample_disk(u: glam::Vec2) -> glam::Vec2 {
+    let u_offset = 2.0 * u - glam::Vec2::ONE;
+
+    if u_offset.x == 0.0 && u_offset.y == 0.0 {
+        glam::Vec2::ZERO
+    } else {
+        let (r, theta) = if u_offset.x.abs() > u_offset.y.abs() {
+            (
+                u_offset.x,
+                std::f32::consts::PI / 4.0 * (u_offset.y / u_offset.x),
+            )
+        } else {
+            (
+                u_offset.y,
+                std::f32::consts::PI / 2.0 - std::f32::consts::PI / 4.0 * (u_offset.x / u_offset.y),
+            )
+        };
+
+        glam::vec2(r * theta.cos(), r * theta.sin())
+    }
 }

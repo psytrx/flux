@@ -12,4 +12,5 @@ pub trait Sampler {
 
 pub struct CameraSample {
     pub p_film: glam::Vec2,
+    pub p_lens: glam::Vec2,
 }
