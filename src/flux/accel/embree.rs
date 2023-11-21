@@ -8,8 +8,8 @@ impl EmbreeAccel {
     pub fn build(primitives: &[Primitive]) -> EmbreeAccel {
         let scene = unsafe {
             let device = embree4_sys::rtcNewDevice(b"verbose=0" as *const _ as _);
-
             let scene = embree4_sys::rtcNewScene(device);
+
             embree4_sys::rtcSetSceneBuildQuality(scene, embree4_sys::RTCBuildQuality::HIGH);
             embree4_sys::rtcSetSceneFlags(scene, embree4_sys::RTCSceneFlags::ROBUST);
 
@@ -23,7 +23,6 @@ impl EmbreeAccel {
             }
 
             embree4_sys::rtcCommitScene(scene);
-
             scene
         };
 
@@ -32,7 +31,7 @@ impl EmbreeAccel {
 
     pub fn intersect(&self, ray: &Ray) -> Option<Interaction> {
         let mut ray_hit = embree4_sys::RTCRayHit {
-            ray: embree4_sys::RTCRay::from(ray),
+            ray: ray.into(),
             hit: Default::default(),
         };
 
@@ -44,12 +43,13 @@ impl EmbreeAccel {
             None
         } else {
             let t = ray_hit.ray.tfar;
-            let p = ray.origin + t * ray.direction;
+            let point = ray.origin + t * ray.direction;
 
             // We need to normalize the surface normal as Embree may
             // scale the normals for performance and accuracy.
-            let outward_normal =
-                glam::Vec3::new(ray_hit.hit.Ng_x, ray_hit.hit.Ng_y, ray_hit.hit.Ng_z).normalize();
+            let embree_normal =
+                glam::Vec3::new(ray_hit.hit.Ng_x, ray_hit.hit.Ng_y, ray_hit.hit.Ng_z);
+            let outward_normal = embree_normal.normalize();
 
             let front_face = ray.direction.dot(outward_normal) < 0.0;
             let normal = if front_face {
@@ -59,7 +59,7 @@ impl EmbreeAccel {
             };
 
             Some(Interaction {
-                p,
+                point,
                 normal,
                 front_face,
             })

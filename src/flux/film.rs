@@ -10,24 +10,6 @@ impl Film {
         Self { resolution, pixels }
     }
 
-    pub fn from_fn(resolution: glam::UVec2, f: impl Fn(u32, u32) -> glam::Vec3) -> Self {
-        let dim = resolution.x * resolution.y;
-        let mut pixels = vec![Pixel::ZERO; dim as usize];
-        for y in 0..resolution.y {
-            for x in 0..resolution.x {
-                let index = y * resolution.x + x;
-                let pixel = &mut pixels[index as usize];
-                pixel.spectrum_sum = f(x, y);
-                pixel.weight_sum = 1.0;
-            }
-        }
-        Self::from_pixels(resolution, pixels)
-    }
-
-    fn from_pixels(resolution: glam::UVec2, pixels: Vec<Pixel>) -> Self {
-        Self { resolution, pixels }
-    }
-
     pub fn add_sample(&mut self, p_film: glam::Vec2, spectrum: glam::Vec3) {
         let x = p_film.x as u32;
         let y = p_film.y as u32;
