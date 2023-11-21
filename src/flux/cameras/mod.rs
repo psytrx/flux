@@ -15,8 +15,8 @@ impl DummyCamera {
 }
 
 impl Camera for DummyCamera {
-    fn ray(&self, p_raster: glam::Vec2) -> Ray {
-        let uv = p_raster / self.resolution.as_vec2();
+    fn ray(&self, p_film: glam::Vec2) -> Ray {
+        let uv = p_film / self.resolution.as_vec2();
 
         let upper_left = glam::vec3(-2.0, 2.5, 0.0);
         let horizontal = glam::vec3(4.0, 0.0, 0.0);

@@ -27,6 +27,17 @@ impl Film {
     fn from_pixels(resolution: glam::UVec2, pixels: Vec<Pixel>) -> Self {
         Self { resolution, pixels }
     }
+
+    pub fn add_sample(&mut self, p_film: glam::Vec2, spectrum: glam::Vec3) {
+        let x = p_film.x as u32;
+        let y = p_film.y as u32;
+        let index = y * self.resolution.x + x;
+
+        let pixel = &mut self.pixels[index as usize];
+
+        pixel.spectrum_sum += spectrum;
+        pixel.weight_sum += 1.0;
+    }
 }
 
 impl From<Film> for image::Rgb32FImage {
@@ -34,7 +45,7 @@ impl From<Film> for image::Rgb32FImage {
         image::Rgb32FImage::from_fn(val.resolution.x, val.resolution.y, |x, y| {
             let index = y * val.resolution.x + x;
             let pixel = &val.pixels[index as usize];
-            let color = pixel.spectrum_sum / pixel.weight_sum;
+            let color = pixel.color();
             image::Rgb([color.x, color.y, color.z])
         })
     }
@@ -51,4 +62,9 @@ impl Pixel {
         spectrum_sum: glam::Vec3::ZERO,
         weight_sum: 0.0,
     };
+
+    fn color(&self) -> glam::Vec3 {
+        assert!(self.weight_sum != 0.0);
+        self.spectrum_sum / self.weight_sum
+    }
 }
