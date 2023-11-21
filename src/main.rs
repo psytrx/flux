@@ -8,7 +8,7 @@ fn main() -> anyhow::Result<()> {
     let film = {
         log::debug!("rendering film...");
         measure_time::trace_time!("rendering film");
-        flux::render_film(resolution, 32)
+        flux::render_film(resolution, 32).gamma_corrected(2.0)
     };
 
     let img: image::Rgb32FImage = {

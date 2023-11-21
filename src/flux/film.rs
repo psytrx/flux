@@ -10,6 +10,17 @@ impl Film {
         Self { resolution, pixels }
     }
 
+    fn from_spectra(resolution: glam::UVec2, spectra: Vec<glam::Vec3>) -> Self {
+        let pixels = spectra
+            .into_iter()
+            .map(|spectrum| Pixel {
+                spectrum_sum: spectrum,
+                weight_sum: 1.0,
+            })
+            .collect();
+        Self { resolution, pixels }
+    }
+
     pub fn add_sample(&mut self, p_film: glam::Vec2, spectrum: glam::Vec3) {
         let x = p_film.x as u32;
         let y = p_film.y as u32;
@@ -19,6 +30,21 @@ impl Film {
 
         pixel.spectrum_sum += spectrum;
         pixel.weight_sum += 1.0;
+    }
+
+    fn mapped_spectra(&self, f: impl Fn(glam::Vec3) -> glam::Vec3) -> Film {
+        let pixels = self.pixels.iter().map(|pixel| f(pixel.color())).collect();
+        Self::from_spectra(self.resolution, pixels)
+    }
+
+    pub fn gamma_corrected(&self, gamma: f32) -> Film {
+        self.mapped_spectra(|color| {
+            glam::vec3(
+                color.x.powf(1.0 / gamma),
+                color.y.powf(1.0 / gamma),
+                color.z.powf(1.0 / gamma),
+            )
+        })
     }
 }
 
