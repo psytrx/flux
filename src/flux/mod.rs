@@ -1,4 +1,5 @@
 pub mod accel;
+pub mod cameras;
 mod film;
 mod interaction;
 mod primitive;
@@ -10,29 +11,23 @@ use ray::*;
 
 use self::{
     accel::EmbreeAccel,
+    cameras::{Camera, DummyCamera},
     primitive::Primitive,
     shapes::{Floor, Sphere},
 };
 
 pub fn render_film(resolution: glam::UVec2) -> Film {
-    let upper_left = glam::vec3(-2.0, 2.5, 0.0);
-    let horizontal = glam::vec3(4.0, 0.0, 0.0);
-    let vertical = glam::vec3(0.0, -4.0, 0.0);
-    let origin = glam::vec3(0.0, 1.5, -4.0);
-
     let primitives = vec![
         Primitive::new(Box::new(Floor::new())),
         Primitive::new(Box::new(Sphere::new(glam::vec3(0.0, 1.0, 0.0), 1.0))),
     ];
     let accel = EmbreeAccel::build(&primitives);
 
+    let camera = DummyCamera::new(resolution);
+
     Film::from_fn(resolution, |x, y| {
-        let u = x as f32 / resolution.x as f32;
-        let v = y as f32 / resolution.y as f32;
-
-        let target = upper_left + u * horizontal + v * vertical;
-        let ray = Ray::new(origin, target - origin);
-
+        let p_raster = glam::vec2(x as f32, y as f32);
+        let ray = camera.ray(p_raster);
         ray_color(&accel, &ray)
     })
 }
