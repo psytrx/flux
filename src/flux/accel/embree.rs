@@ -1,11 +1,12 @@
 use crate::flux::{interaction::Interaction, primitive::Primitive, ray::Ray};
 
 pub struct EmbreeAccel {
+    primitives: Vec<Primitive>,
     scene: embree4_sys::RTCScene,
 }
 
 impl EmbreeAccel {
-    pub fn build(primitives: &[Primitive]) -> EmbreeAccel {
+    pub fn build(primitives: Vec<Primitive>) -> EmbreeAccel {
         let scene = unsafe {
             let device = embree4_sys::rtcNewDevice(b"verbose=0" as *const _ as _);
             let scene = embree4_sys::rtcNewScene(device);
@@ -26,7 +27,7 @@ impl EmbreeAccel {
             scene
         };
 
-        Self { scene }
+        Self { primitives, scene }
     }
 
     pub fn intersect(&self, ray: &Ray) -> Option<Interaction> {
@@ -58,10 +59,15 @@ impl EmbreeAccel {
                 -outward_normal
             };
 
+            let material = self.primitives[ray_hit.hit.geomID as usize]
+                .material
+                .clone();
+
             Some(Interaction {
                 point,
                 normal,
                 front_face,
+                material,
             })
         }
     }

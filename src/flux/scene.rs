@@ -7,7 +7,7 @@ pub struct Scene {
 
 impl Scene {
     pub fn new(primitives: Vec<super::primitive::Primitive>, camera: Box<dyn Camera>) -> Self {
-        let aggregate = EmbreeAccel::build(&primitives);
+        let aggregate = EmbreeAccel::build(primitives);
         Self { aggregate, camera }
     }
 }

@@ -2,7 +2,9 @@ pub mod accel;
 pub mod cameras;
 mod film;
 mod interaction;
+pub mod materials;
 mod primitive;
+mod random;
 mod ray;
 pub mod samplers;
 mod scene;
@@ -13,6 +15,7 @@ use ray::*;
 
 use self::{
     cameras::DummyCamera,
+    materials::MatteMaterial,
     primitive::Primitive,
     samplers::{Sampler, UniformRandomSampler},
     scene::Scene,
@@ -21,11 +24,23 @@ use self::{
 
 pub fn render_film(resolution: glam::UVec2, max_depth: u32) -> Film {
     let scene = {
-        let primitives = vec![
-            Primitive::new(Box::new(Floor::new())),
-            Primitive::new(Box::new(Sphere::new(glam::vec3(0.0, 1.0, 0.0), 1.0))),
-        ];
+        let primitives = {
+            let material = std::rc::Rc::new(MatteMaterial::new(glam::Vec3::splat(0.5)));
+
+            let floor = {
+                let shape = Box::new(Floor::new());
+                Primitive::new(shape, material.clone())
+            };
+            let sphere = {
+                let shape = Box::new(Sphere::new(glam::vec3(0.0, 1.0, 0.0), 1.0));
+                Primitive::new(shape, material.clone())
+            };
+
+            vec![floor, sphere]
+        };
+
         let camera = Box::new(DummyCamera::new(resolution));
+
         Scene::new(primitives, camera)
     };
 
@@ -54,16 +69,13 @@ fn ray_color(scene: &Scene, ray: &Ray, rng: &mut rand::rngs::StdRng, depth: u32)
         glam::Vec3::ZERO
     } else {
         match scene.aggregate.intersect(ray) {
-            Some(int) => {
-                // surface normal shading
-                // 0.5 * (int.normal + glam::Vec3::ONE)
-
-                let direction = (int.normal
-                    + (rand::Rng::gen::<glam::Vec3>(rng) * 2.0 - glam::Vec3::ONE))
-                    .normalize();
-                let scattered = Ray::new(int.point, direction);
-                0.5 * ray_color(scene, &scattered, rng, depth - 1)
-            }
+            Some(int) => match int.material.scatter(ray, &int, rng) {
+                Some(srec) => {
+                    let scattered = int.spawn_ray(srec.direction);
+                    srec.attenuation * ray_color(scene, &scattered, rng, depth - 1)
+                }
+                None => glam::Vec3::ZERO,
+            },
             None => background(ray),
         }
     }
