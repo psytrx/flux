@@ -1,5 +1,6 @@
 pub mod accel;
 mod film;
+mod interaction;
 mod primitive;
 mod ray;
 pub mod shapes;
@@ -37,20 +38,9 @@ pub fn render_film(resolution: glam::UVec2) -> Film {
 }
 
 fn ray_color(accel: &EmbreeAccel, ray: &Ray) -> glam::Vec3 {
-    let mut ray_hit = embree4_sys::RTCRayHit {
-        ray: embree4_sys::RTCRay::from(ray),
-        hit: Default::default(),
-    };
-
-    unsafe {
-        embree4_sys::rtcIntersect1(accel.scene, &mut ray_hit, std::ptr::null_mut());
-    }
-
-    if ray_hit.hit.geomID == embree4_sys::RTC_INVALID_GEOMETRY_ID {
-        background(ray)
-    } else {
-        let n = glam::Vec3::new(ray_hit.hit.Ng_x, ray_hit.hit.Ng_y, ray_hit.hit.Ng_z).normalize();
-        0.5 * (n + glam::Vec3::ONE)
+    match accel.intersect(ray) {
+        Some(int) => 0.5 * (int.normal + glam::Vec3::ONE),
+        None => background(ray),
     }
 }
 

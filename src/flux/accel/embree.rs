@@ -1,4 +1,4 @@
-use crate::flux::primitive::Primitive;
+use crate::flux::{interaction::Interaction, primitive::Primitive, ray::Ray};
 
 pub struct EmbreeAccel {
     pub scene: embree4_sys::RTCScene,
@@ -28,5 +28,41 @@ impl EmbreeAccel {
         };
 
         Self { scene }
+    }
+
+    pub fn intersect(&self, ray: &Ray) -> Option<Interaction> {
+        let mut ray_hit = embree4_sys::RTCRayHit {
+            ray: embree4_sys::RTCRay::from(ray),
+            hit: Default::default(),
+        };
+
+        unsafe {
+            embree4_sys::rtcIntersect1(self.scene, &mut ray_hit, std::ptr::null_mut());
+        }
+
+        if ray_hit.hit.geomID == embree4_sys::RTC_INVALID_GEOMETRY_ID {
+            None
+        } else {
+            let t = ray_hit.ray.tfar;
+            let p = ray.origin + t * ray.direction;
+
+            // We need to normalize the surface normal as Embree may
+            // scale the normals for performance and accuracy.
+            let outward_normal =
+                glam::Vec3::new(ray_hit.hit.Ng_x, ray_hit.hit.Ng_y, ray_hit.hit.Ng_z).normalize();
+
+            let front_face = ray.direction.dot(outward_normal) < 0.0;
+            let normal = if front_face {
+                outward_normal
+            } else {
+                -outward_normal
+            };
+
+            Some(Interaction {
+                p,
+                normal,
+                front_face,
+            })
+        }
     }
 }
