@@ -1,5 +1,7 @@
+mod floor;
 mod sphere;
 
+pub use floor::*;
 pub use sphere::*;
 
 pub trait Shape {

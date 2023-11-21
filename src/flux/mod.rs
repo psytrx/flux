@@ -4,19 +4,25 @@ mod primitive;
 mod ray;
 pub mod shapes;
 
-use embree4_sys::RTCRayHit;
 pub use film::*;
 use ray::*;
 
-use self::{accel::EmbreeAccel, primitive::Primitive, shapes::Sphere};
+use self::{
+    accel::EmbreeAccel,
+    primitive::Primitive,
+    shapes::{Floor, Sphere},
+};
 
 pub fn render_film(resolution: glam::UVec2) -> Film {
-    let upper_left = glam::vec3(-2.0, 2.0, 0.0);
+    let upper_left = glam::vec3(-2.0, 2.5, 0.0);
     let horizontal = glam::vec3(4.0, 0.0, 0.0);
     let vertical = glam::vec3(0.0, -4.0, 0.0);
-    let origin = glam::vec3(0.0, 0.0, -4.0);
+    let origin = glam::vec3(0.0, 1.5, -4.0);
 
-    let primitives = vec![Primitive::new(Box::new(Sphere::new(glam::Vec3::ZERO, 1.0)))];
+    let primitives = vec![
+        Primitive::new(Box::new(Floor::new())),
+        Primitive::new(Box::new(Sphere::new(glam::vec3(0.0, 1.0, 0.0), 1.0))),
+    ];
     let accel = EmbreeAccel::build(&primitives);
 
     Film::from_fn(resolution, |x, y| {
@@ -31,7 +37,7 @@ pub fn render_film(resolution: glam::UVec2) -> Film {
 }
 
 fn ray_color(accel: &EmbreeAccel, ray: &Ray) -> glam::Vec3 {
-    let mut ray_hit = RTCRayHit {
+    let mut ray_hit = embree4_sys::RTCRayHit {
         ray: embree4_sys::RTCRay::from(ray),
         hit: Default::default(),
     };
