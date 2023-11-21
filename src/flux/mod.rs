@@ -22,10 +22,9 @@ pub fn render_film(resolution: glam::UVec2) -> Film {
 }
 
 fn ray_color(ray: Ray) -> glam::Vec3 {
-    if hit_sphere(&ray) {
-        glam::Vec3::X
-    } else {
-        background(ray)
+    match hit_sphere(&ray) {
+        Some(interaction) => 0.5 * (interaction.n + glam::Vec3::ONE),
+        None => background(ray),
     }
 }
 
@@ -35,7 +34,7 @@ fn background(ray: Ray) -> glam::Vec3 {
     (1.0 - a) * glam::Vec3::ONE + a * glam::vec3(0.5, 0.7, 1.0)
 }
 
-fn hit_sphere(ray: &Ray) -> bool {
+fn hit_sphere(ray: &Ray) -> Option<Interaction> {
     let center = glam::Vec3::ZERO;
     let radius = 1.0;
 
@@ -44,5 +43,18 @@ fn hit_sphere(ray: &Ray) -> bool {
     let b = 2.0 * oc.dot(ray.direction);
     let c = oc.dot(oc) - radius * radius;
     let discriminant = b * b - 4.0 * a * c;
-    discriminant > 0.0
+
+    if discriminant < 0.0 {
+        None
+    } else {
+        let t = (-b - discriminant.sqrt()) / (2.0 * a);
+        let p = ray.origin + t * ray.direction;
+        let n = (p - center).normalize();
+        Some(Interaction { _p: p, n })
+    }
+}
+
+struct Interaction {
+    _p: glam::Vec3,
+    n: glam::Vec3,
 }
