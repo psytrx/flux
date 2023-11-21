@@ -5,9 +5,15 @@ fn main() -> anyhow::Result<()> {
 
     let resolution = glam::uvec2(512, 512);
 
-    let img = {
-        measure_time::trace_time!("drawing image");
-        flux::render_image(resolution)
+    let film = {
+        log::debug!("rendering film...");
+        measure_time::trace_time!("rendering film");
+        flux::render_film(resolution)
+    };
+
+    let img: image::Rgb32FImage = {
+        measure_time::trace_time!("converting film to image");
+        film.into()
     };
 
     {
