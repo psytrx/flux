@@ -13,6 +13,8 @@ pub mod shapes;
 pub use film::*;
 use ray::*;
 
+use crate::flux::materials::MetalMaterial;
+
 use self::{
     cameras::DummyCamera,
     materials::MatteMaterial,
@@ -25,18 +27,32 @@ use self::{
 pub fn render_film(resolution: glam::UVec2, max_depth: u32) -> Film {
     let scene = {
         let primitives = {
-            let material = std::rc::Rc::new(MatteMaterial::new(glam::Vec3::splat(0.5)));
+            let rose_gold_metal = {
+                let rose_gold = glam::vec3(0.72, 0.45, 0.20);
+                std::rc::Rc::new(MetalMaterial::new(rose_gold, 0.2))
+            };
+            let matte = std::rc::Rc::new(MatteMaterial::new(glam::Vec3::splat(0.5)));
+            let mirror_metal = { std::rc::Rc::new(MetalMaterial::new(glam::Vec3::ONE, 0.0)) };
 
             let floor = {
                 let shape = Box::new(Floor::new());
-                Primitive::new(shape, material.clone())
-            };
-            let sphere = {
-                let shape = Box::new(Sphere::new(glam::vec3(0.0, 1.0, 0.0), 1.0));
-                Primitive::new(shape, material.clone())
+                Primitive::new(shape, matte.clone())
             };
 
-            vec![floor, sphere]
+            let left_sphere = {
+                let shape = Box::new(Sphere::new(glam::vec3(-2.0, 1.0, 0.0), 1.0));
+                Primitive::new(shape, mirror_metal.clone())
+            };
+            let middle_sphere = {
+                let shape = Box::new(Sphere::new(glam::vec3(0.0, 1.0, 0.0), 1.0));
+                Primitive::new(shape, matte.clone())
+            };
+            let right_sphere = {
+                let shape = Box::new(Sphere::new(glam::vec3(2.0, 1.0, 0.0), 1.0));
+                Primitive::new(shape, rose_gold_metal.clone())
+            };
+
+            vec![floor, left_sphere, middle_sphere, right_sphere]
         };
 
         let camera = Box::new(DummyCamera::new(resolution));

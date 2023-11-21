@@ -18,10 +18,10 @@ impl Camera for DummyCamera {
     fn ray(&self, p_film: glam::Vec2) -> Ray {
         let uv = p_film / self.resolution.as_vec2();
 
-        let upper_left = glam::vec3(-2.0, 2.5, 0.0);
-        let horizontal = glam::vec3(4.0, 0.0, 0.0);
-        let vertical = glam::vec3(0.0, -4.0, 0.0);
-        let origin = glam::vec3(0.0, 1.5, -4.0);
+        let upper_left = glam::vec3(-3.0, 3.5, 0.0);
+        let horizontal = glam::vec3(6.0, 0.0, 0.0);
+        let vertical = glam::vec3(0.0, -6.0, 0.0);
+        let origin = glam::vec3(0.0, 1.5, -6.0);
 
         let target = upper_left + uv.x * horizontal + uv.y * vertical;
 
