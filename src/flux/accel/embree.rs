@@ -1,7 +1,7 @@
 use crate::flux::{interaction::Interaction, primitive::Primitive, ray::Ray};
 
 pub struct EmbreeAccel {
-    pub scene: embree4_sys::RTCScene,
+    scene: embree4_sys::RTCScene,
 }
 
 impl EmbreeAccel {
