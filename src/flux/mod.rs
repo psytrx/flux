@@ -1,14 +1,23 @@
+pub mod accel;
 mod film;
+mod primitive;
 mod ray;
+pub mod shapes;
 
+use embree4_sys::RTCRayHit;
 pub use film::*;
 use ray::*;
+
+use self::{accel::EmbreeAccel, primitive::Primitive, shapes::Sphere};
 
 pub fn render_film(resolution: glam::UVec2) -> Film {
     let upper_left = glam::vec3(-2.0, 2.0, 0.0);
     let horizontal = glam::vec3(4.0, 0.0, 0.0);
     let vertical = glam::vec3(0.0, -4.0, 0.0);
     let origin = glam::vec3(0.0, 0.0, -4.0);
+
+    let primitives = vec![Primitive::new(Box::new(Sphere::new(glam::Vec3::ZERO, 1.0)))];
+    let accel = EmbreeAccel::build(&primitives);
 
     Film::from_fn(resolution, |x, y| {
         let u = x as f32 / resolution.x as f32;
@@ -17,44 +26,30 @@ pub fn render_film(resolution: glam::UVec2) -> Film {
         let target = upper_left + u * horizontal + v * vertical;
         let ray = Ray::new(origin, target - origin);
 
-        ray_color(ray)
+        ray_color(&accel, &ray)
     })
 }
 
-fn ray_color(ray: Ray) -> glam::Vec3 {
-    match hit_sphere(&ray) {
-        Some(interaction) => 0.5 * (interaction.n + glam::Vec3::ONE),
-        None => background(ray),
+fn ray_color(accel: &EmbreeAccel, ray: &Ray) -> glam::Vec3 {
+    let mut ray_hit = RTCRayHit {
+        ray: embree4_sys::RTCRay::from(ray),
+        hit: Default::default(),
+    };
+
+    unsafe {
+        embree4_sys::rtcIntersect1(accel.scene, &mut ray_hit, std::ptr::null_mut());
+    }
+
+    if ray_hit.hit.geomID == embree4_sys::RTC_INVALID_GEOMETRY_ID {
+        background(ray)
+    } else {
+        let n = glam::Vec3::new(ray_hit.hit.Ng_x, ray_hit.hit.Ng_y, ray_hit.hit.Ng_z).normalize();
+        0.5 * (n + glam::Vec3::ONE)
     }
 }
 
-fn background(ray: Ray) -> glam::Vec3 {
+fn background(ray: &Ray) -> glam::Vec3 {
     let unit_direction = ray.direction.normalize();
     let a = 0.5 * (unit_direction.y + 1.0);
     (1.0 - a) * glam::Vec3::ONE + a * glam::vec3(0.5, 0.7, 1.0)
-}
-
-fn hit_sphere(ray: &Ray) -> Option<Interaction> {
-    let center = glam::Vec3::ZERO;
-    let radius = 1.0;
-
-    let oc = ray.origin - center;
-    let a = ray.direction.dot(ray.direction);
-    let b = 2.0 * oc.dot(ray.direction);
-    let c = oc.dot(oc) - radius * radius;
-    let discriminant = b * b - 4.0 * a * c;
-
-    if discriminant < 0.0 {
-        None
-    } else {
-        let t = (-b - discriminant.sqrt()) / (2.0 * a);
-        let p = ray.origin + t * ray.direction;
-        let n = (p - center).normalize();
-        Some(Interaction { _p: p, n })
-    }
-}
-
-struct Interaction {
-    _p: glam::Vec3,
-    n: glam::Vec3,
 }
