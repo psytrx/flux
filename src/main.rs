@@ -1,14 +1,21 @@
+use crate::example_scenes::{load_example_scene, ExampleScene};
+
+mod example_scenes;
 mod flux;
 
 fn main() -> anyhow::Result<()> {
     env_logger::init();
 
-    let resolution = glam::uvec2(512, 512);
+    let scene = {
+        log::debug!("loading scene...");
+        measure_time::trace_time!("loading scene");
+        load_example_scene(ExampleScene::MaterialDemo)
+    };
 
     let film = {
         log::debug!("rendering film...");
         measure_time::trace_time!("rendering film");
-        flux::render_film(resolution, 32).gamma_corrected(2.0)
+        flux::render_film(&scene, 32).gamma_corrected(2.0)
     };
 
     let img: image::Rgb32FImage = {

@@ -62,4 +62,8 @@ impl Camera for PerspectiveCamera {
 
         Ray::new(origin, direction)
     }
+
+    fn resoltuion(&self) -> glam::UVec2 {
+        self.resolution
+    }
 }
