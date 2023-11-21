@@ -13,7 +13,7 @@ pub mod shapes;
 pub use film::*;
 use ray::*;
 
-use crate::flux::materials::MetalMaterial;
+use crate::flux::materials::{DielectricMaterial, MetalMaterial};
 
 use self::{
     cameras::DummyCamera,
@@ -27,16 +27,19 @@ use self::{
 pub fn render_film(resolution: glam::UVec2, max_depth: u32) -> Film {
     let scene = {
         let primitives = {
+            let floor_material = std::rc::Rc::new(MatteMaterial::new(glam::Vec3::ONE));
             let rose_gold_metal = {
                 let rose_gold = glam::vec3(0.72, 0.45, 0.20);
-                std::rc::Rc::new(MetalMaterial::new(rose_gold, 0.2))
+                std::rc::Rc::new(MetalMaterial::new(rose_gold, 0.05))
             };
-            let matte = std::rc::Rc::new(MatteMaterial::new(glam::Vec3::splat(0.5)));
-            let mirror_metal = { std::rc::Rc::new(MetalMaterial::new(glam::Vec3::ONE, 0.0)) };
+            let matte = std::rc::Rc::new(MatteMaterial::new(glam::vec3(0.1, 0.2, 0.5)));
+            let mirror_metal = std::rc::Rc::new(MetalMaterial::new(glam::Vec3::splat(0.7), 0.0));
+            let glass_material =
+                std::rc::Rc::new(DielectricMaterial::new(glam::vec3(0.7, 0.9, 0.7), 1.5));
 
             let floor = {
                 let shape = Box::new(Floor::new());
-                Primitive::new(shape, matte.clone())
+                Primitive::new(shape, floor_material.clone())
             };
 
             let left_sphere = {
@@ -52,7 +55,22 @@ pub fn render_film(resolution: glam::UVec2, max_depth: u32) -> Film {
                 Primitive::new(shape, rose_gold_metal.clone())
             };
 
-            vec![floor, left_sphere, middle_sphere, right_sphere]
+            let glass_sphere = {
+                let radius = 0.35;
+                let shape = Box::new(Sphere::new(
+                    glam::vec3(-radius, radius, -5.0 * radius),
+                    radius,
+                ));
+                Primitive::new(shape, glass_material.clone())
+            };
+
+            vec![
+                floor,
+                left_sphere,
+                middle_sphere,
+                right_sphere,
+                glass_sphere,
+            ]
         };
 
         let camera = Box::new(DummyCamera::new(resolution));
@@ -60,7 +78,7 @@ pub fn render_film(resolution: glam::UVec2, max_depth: u32) -> Film {
         Scene::new(primitives, camera)
     };
 
-    let sampler = UniformRandomSampler::new(32);
+    let sampler = UniformRandomSampler::new(64);
     let mut rng = <rand::rngs::StdRng as rand::SeedableRng>::seed_from_u64(0);
 
     let mut film = Film::new(resolution);
