@@ -1,3 +1,5 @@
+mod flux;
+
 fn main() -> anyhow::Result<()> {
     env_logger::init();
 
@@ -5,12 +7,7 @@ fn main() -> anyhow::Result<()> {
 
     let img = {
         measure_time::trace_time!("drawing image");
-        image::Rgb32FImage::from_fn(resolution.x, resolution.y, |x, y| {
-            let r = x as f32 / resolution.x as f32;
-            let g = y as f32 / resolution.y as f32;
-            let b = 0.0;
-            image::Rgb([r, g, b])
-        })
+        flux::render_image(resolution)
     };
 
     {
