@@ -8,7 +8,7 @@ use crate::{
     },
     flux::{
         cameras::*,
-        shapes::Quad,
+        shapes::{Quad, Transform, TriangleMesh},
         textures::{ConstantTexture, ImageTexture},
         *,
     },
@@ -59,7 +59,25 @@ fn cornell_box() -> Scene {
             diffuse(25.0, 25.0, 25.0),
         );
 
-        vec![floor, ceiling, left_wall, right_wall, back_wall, light]
+        let transform = glam::Affine3A::from_scale_rotation_translation(
+            glam::Vec3::splat(25.0),
+            glam::Quat::from_rotation_y(std::f32::consts::PI),
+            glam::vec3(-65.0, -110.0, 75.0),
+        );
+        let mut suzanne_meshes = TriangleMesh::load_obj("./assets/obj/suzanne.obj")
+            .unwrap()
+            .into_iter()
+            .map(|m| {
+                Primitive::new(
+                    Box::new(Transform::new(transform, Box::new(m))),
+                    white.clone(),
+                )
+            })
+            .collect::<Vec<_>>();
+
+        let mut primitives = vec![floor, ceiling, left_wall, right_wall, back_wall, light];
+        primitives.append(&mut suzanne_meshes);
+        primitives
     };
 
     let camera = {

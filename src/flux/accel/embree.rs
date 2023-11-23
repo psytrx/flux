@@ -61,13 +61,17 @@ impl EmbreeAccel {
             let primitive = &self.primitives[ray_hit.hit.geomID as usize];
             let uv = primitive.shape.uv(point);
 
-            Some(Interaction {
+            let mut int = Interaction {
                 point,
                 normal,
                 front_face,
                 uv,
                 primitive,
-            })
+            };
+
+            primitive.shape.adjust_interaction(&mut int);
+
+            Some(int)
         }
     }
 }
