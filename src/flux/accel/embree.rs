@@ -46,8 +46,7 @@ impl EmbreeAccel {
             let t = ray_hit.ray.tfar;
             let point = ray.origin + t * ray.direction;
 
-            // We need to normalize the surface normal as Embree may
-            // scale the normals for performance and accuracy.
+            // "The hit contains the unnormalized geometric normal in object space [...]"
             let embree_normal =
                 glam::Vec3::new(ray_hit.hit.Ng_x, ray_hit.hit.Ng_y, ray_hit.hit.Ng_z);
             let outward_normal = embree_normal.normalize();
