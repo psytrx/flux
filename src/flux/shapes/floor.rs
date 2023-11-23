@@ -24,6 +24,10 @@ impl Shape for Floor {
             geometry
         }
     }
+
+    fn uv(&self, _p: glam::Vec3) -> glam::Vec2 {
+        todo!()
+    }
 }
 
 unsafe extern "C" fn bounds_fn(args: *const embree4_sys::RTCBoundsFunctionArguments) {

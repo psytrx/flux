@@ -32,4 +32,16 @@ impl Shape for Sphere {
             geometry
         }
     }
+
+    fn uv(&self, p: glam::Vec3) -> glam::Vec2 {
+        let oc = p - self.center;
+
+        let theta = (-oc.y / self.radius).acos();
+        let phi = (-oc.z).atan2(oc.x) + std::f32::consts::PI;
+
+        glam::vec2(
+            phi / (2.0 * std::f32::consts::PI),
+            theta / std::f32::consts::PI,
+        )
+    }
 }
