@@ -261,6 +261,7 @@ dependencies = [
  "image",
  "log",
  "measure_time",
+ "oidn2-sys",
  "rand",
 ]
 
@@ -525,6 +526,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39e3200413f237f41ab11ad6d161bc7239c84dcb631773ccd7de3dfe4b5c267c"
 dependencies = [
  "autocfg",
+]
+
+[[package]]
+name = "oidn2-sys"
+version = "0.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ed0eb292f75c8a207a90b5e8efe9aac8b057fce403e1f2ef8219ac9b5b244c3b"
+dependencies = [
+ "bindgen",
 ]
 
 [[package]]

@@ -1,3 +1,6 @@
+use flux::{Denoiser, Film};
+use image::Rgb32FImage;
+
 use crate::{
     example_scenes::{load_example_scene, ExampleScene},
     flux::samplers::StratifiedSampler,
@@ -23,14 +26,30 @@ fn main() -> anyhow::Result<()> {
         flux::render_film(&scene, sampler, 32).gamma_corrected(2.0)
     };
 
-    let img: image::Rgb32FImage = {
-        measure_time::trace_time!("converting film to image");
-        film.into()
+    {
+        let raw: Rgb32FImage = film.clone().into();
+        raw.save("./output/output_raw.exr")?;
+    };
+
+    let denoised = {
+        log::debug!("denoising film...");
+        measure_time::trace_time!("denoising film");
+
+        let albedo = Film::new(film.resolution);
+        let albedo_img: Rgb32FImage = albedo.clone().into();
+        albedo_img.save("./output/output_albedo.exr")?;
+
+        let normal = Film::new(film.resolution);
+        let normal_img: Rgb32FImage = normal.clone().into();
+        normal_img.save("./output/output_normal.exr")?;
+
+        let denoiser = Denoiser::new(film.resolution, &albedo, &normal);
+        denoiser.denoise(&film)
     };
 
     {
-        measure_time::trace_time!("saving image");
-        img.save("./output/output.exr")?;
+        let raw: Rgb32FImage = denoised.clone().into();
+        raw.save("./output/output_denoised.exr")?;
     }
 
     Ok(())

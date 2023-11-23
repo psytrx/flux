@@ -1,5 +1,6 @@
+#[derive(Clone)]
 pub struct Film {
-    resolution: glam::UVec2,
+    pub resolution: glam::UVec2,
     pixels: Vec<Pixel>,
 }
 
@@ -7,6 +8,10 @@ impl Film {
     pub fn new(resolution: glam::UVec2) -> Self {
         let dim = resolution.x * resolution.y;
         let pixels = vec![Pixel::ZERO; dim as usize];
+        Self::from_pixels(resolution, pixels)
+    }
+
+    fn from_pixels(resolution: glam::UVec2, pixels: Vec<Pixel>) -> Self {
         Self { resolution, pixels }
     }
 
@@ -19,6 +24,26 @@ impl Film {
             })
             .collect();
         Self { resolution, pixels }
+    }
+
+    pub fn from_rgb_f32_slice(resolution: glam::UVec2, data: &mut [f32]) -> Self {
+        let pixels = data
+            .chunks_exact(3)
+            .map(|chunk| Pixel {
+                spectrum_sum: match chunk {
+                    [r, g, b] => glam::vec3(*r, *g, *b),
+                    _ => panic!("Invalid chunk size"),
+                },
+                weight_sum: 1.0,
+            })
+            .collect();
+
+        Self::from_pixels(resolution, pixels)
+    }
+
+    pub fn pixel(&self, x: u32, y: u32) -> &Pixel {
+        let index = y * self.resolution.x + x;
+        &self.pixels[index as usize]
     }
 
     pub fn add_sample(&mut self, p_film: glam::Vec2, spectrum: glam::Vec3) {
@@ -60,7 +85,7 @@ impl From<Film> for image::Rgb32FImage {
 }
 
 #[derive(Clone, Copy)]
-struct Pixel {
+pub struct Pixel {
     spectrum_sum: glam::Vec3,
     weight_sum: f32,
 }
@@ -71,7 +96,7 @@ impl Pixel {
         weight_sum: 0.0,
     };
 
-    fn color(&self) -> glam::Vec3 {
+    pub fn color(&self) -> glam::Vec3 {
         debug_assert!(self.weight_sum != 0.0);
         self.spectrum_sum / self.weight_sum
     }

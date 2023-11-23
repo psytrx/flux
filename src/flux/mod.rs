@@ -1,5 +1,6 @@
 pub mod accel;
 pub mod cameras;
+mod denoise;
 mod film;
 mod interaction;
 pub mod materials;
@@ -10,6 +11,7 @@ pub mod samplers;
 mod scene;
 pub mod shapes;
 
+pub use denoise::*;
 pub use film::*;
 pub use primitive::*;
 use ray::*;
