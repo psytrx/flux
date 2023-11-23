@@ -1,8 +1,10 @@
 mod dielectric;
+mod diffuse_light;
 mod matte;
 mod metal;
 
 pub use dielectric::*;
+pub use diffuse_light::*;
 pub use matte::*;
 pub use metal::*;
 
@@ -11,10 +13,16 @@ use super::{interaction::Interaction, ray::Ray};
 pub trait Material {
     fn scatter(
         &self,
-        ray_in: &Ray,
-        int: &Interaction,
-        rng: &mut rand::rngs::StdRng,
-    ) -> Option<ScatterRec>;
+        _ray_in: &Ray,
+        _int: &Interaction,
+        _rng: &mut rand::rngs::StdRng,
+    ) -> Option<ScatterRec> {
+        None
+    }
+
+    fn le(&self, _int: &Interaction) -> Option<glam::Vec3> {
+        None
+    }
 }
 
 pub struct ScatterRec {

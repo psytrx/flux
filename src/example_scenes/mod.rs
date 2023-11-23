@@ -3,7 +3,7 @@ mod prim_util;
 
 use crate::{
     example_scenes::{
-        mat_util::{dielectric, matte, metal},
+        mat_util::{dielectric, diffuse, matte, metal},
         prim_util::{floor, sphere},
     },
     flux::{
@@ -49,7 +49,17 @@ fn cornell_box() -> Scene {
         let right_wall = Primitive::new(Box::new(Quad::new([dfr, dbr, ubr, ufr])), green.clone());
         let back_wall = Primitive::new(Box::new(Quad::new([dbl, dbr, ubr, ubl])), white.clone());
 
-        vec![floor, ceiling, left_wall, right_wall, back_wall]
+        let light = Primitive::new(
+            Box::new(Quad::new([
+                glam::vec3(size / 6.0, size - 1.0, -size / 6.0),
+                glam::vec3(size / 6.0, size - 1.0, size / 6.0),
+                glam::vec3(-size / 6.0, size - 1.0, size / 6.0),
+                glam::vec3(-size / 6.0, size - 1.0, -size / 6.0),
+            ])),
+            diffuse(25.0, 25.0, 25.0),
+        );
+
+        vec![floor, ceiling, left_wall, right_wall, back_wall, light]
     };
 
     let camera = {

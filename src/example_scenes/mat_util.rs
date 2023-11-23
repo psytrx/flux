@@ -1,4 +1,7 @@
-use crate::flux::materials::{Material, MatteMaterial};
+use crate::flux::{
+    materials::{Material, MatteMaterial},
+    textures::ConstantTexture,
+};
 
 pub fn matte(r: f32, g: f32, b: f32) -> std::rc::Rc<dyn Material> {
     std::rc::Rc::new(MatteMaterial::new(glam::vec3(r, g, b)))
@@ -16,4 +19,10 @@ pub fn dielectric(r: f32, g: f32, b: f32, ior: f32) -> std::rc::Rc<dyn Material>
         glam::vec3(r, g, b),
         ior,
     ))
+}
+
+pub fn diffuse(r: f32, g: f32, b: f32) -> std::rc::Rc<dyn Material> {
+    std::rc::Rc::new(crate::flux::materials::DiffuseLightMaterial::new(Box::new(
+        ConstantTexture::new(glam::vec3(r, g, b)),
+    )))
 }
