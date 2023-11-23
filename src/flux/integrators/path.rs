@@ -38,13 +38,18 @@ impl PathTracingIntegrator {
             glam::Vec3::ZERO
         } else {
             match scene.aggregate.intersect(ray) {
-                Some(int) => match int.material.scatter(ray, &int, rng) {
-                    Some(srec) => {
-                        let scattered = int.spawn_ray(srec.direction);
-                        srec.attenuation * self.li_internal(scene, &scattered, rng, depth + 1)
+                Some(int) => {
+                    let le = int.primitive.material.le(&int).unwrap_or(glam::Vec3::ZERO);
+
+                    match int.primitive.material.scatter(ray, &int, rng) {
+                        Some(srec) => {
+                            let scattered = int.spawn_ray(srec.direction);
+                            le + srec.attenuation
+                                * self.li_internal(scene, &scattered, rng, depth + 1)
+                        }
+                        None => le,
                     }
-                    None => glam::Vec3::ZERO,
-                },
+                }
                 None => self.background(scene, ray),
             }
         }

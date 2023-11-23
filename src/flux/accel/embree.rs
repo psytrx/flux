@@ -58,15 +58,15 @@ impl EmbreeAccel {
                 -outward_normal
             };
 
-            let material = self.primitives[ray_hit.hit.geomID as usize]
-                .material
-                .clone();
+            let primitive = &self.primitives[ray_hit.hit.geomID as usize];
+            let uv = primitive.shape.uv(point);
 
             Some(Interaction {
                 point,
                 normal,
                 front_face,
-                material,
+                uv,
+                primitive,
             })
         }
     }

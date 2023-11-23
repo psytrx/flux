@@ -15,7 +15,7 @@ impl Integrator for AlbedoIntegrator {
         match scene.aggregate.intersect(ray) {
             Some(int) => {
                 // TODO: only return the first specular or diffuse hit
-                match int.material.scatter(ray, &int, rng) {
+                match int.primitive.material.scatter(ray, &int, rng) {
                     Some(srec) => srec.attenuation,
                     None => glam::Vec3::ZERO,
                 }

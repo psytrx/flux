@@ -1,13 +1,14 @@
-use super::{materials::Material, ray::Ray};
+use super::{ray::Ray, Primitive};
 
-pub struct Interaction {
+pub struct Interaction<'a> {
     pub point: glam::Vec3,
     pub normal: glam::Vec3,
     pub front_face: bool,
-    pub material: std::rc::Rc<dyn Material>,
+    pub uv: glam::Vec2,
+    pub primitive: &'a Primitive,
 }
 
-impl Interaction {
+impl<'a> Interaction<'a> {
     pub fn spawn_ray(&self, direction: glam::Vec3) -> Ray {
         Ray::new(self.point, direction)
     }
