@@ -1,14 +1,12 @@
 mod floor;
-mod mesh;
 mod quad;
 mod sphere;
 mod transform;
 
 pub use floor::*;
-pub use mesh::*;
 pub use quad::*;
 pub use sphere::*;
-pub use transform::*;
+
 
 use super::interaction::Interaction;
 
