@@ -25,7 +25,7 @@ impl Material for MetalMaterial {
         let reflected = reflect(_ray_in.direction.normalize(), int.normal);
         let direction = reflected + self.fuzz * random_unit_vector(rng);
         let direction = if is_near_zero(&direction) {
-            int.normal
+            reflected
         } else {
             direction
         };
