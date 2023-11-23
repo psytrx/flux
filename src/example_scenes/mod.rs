@@ -31,7 +31,7 @@ fn material_demo() -> Scene {
         let left_sphere = sphere(-2.0, 1.0, 0.0, 1.0, mirror.clone());
         let middle_sphere = sphere(0.0, 1.0, 0.0, 1.0, blue_matte.clone());
         let right_sphere = sphere(2.0, 1.0, 0.0, 1.0, rose_gold.clone());
-        let glass_sphere = sphere(-2.0, 0.4, -3.0, 0.4, glass.clone());
+        let glass_sphere = sphere(-1.0, 0.4, -2.0, 0.4, glass.clone());
 
         vec![
             floor,
@@ -43,13 +43,13 @@ fn material_demo() -> Scene {
     };
 
     let camera = {
-        let look_from = glam::vec3(0.0, 2.5, -5.0);
+        let look_from = glam::vec3(0.0, 2.5, -6.0);
         let look_at = glam::vec3(0.0, 0.5, 0.0);
         Box::new(PerspectiveCamera::new(
-            glam::uvec2(512, 512),
+            glam::uvec2(1024, 576),
             look_from,
             look_at,
-            55.0,
+            65.0,
             0.025,
             look_at.distance(look_from),
         ))
