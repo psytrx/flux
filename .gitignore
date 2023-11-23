@@ -3,4 +3,7 @@
 /output/*
 !output/README.md
 
+/assets/*
+!assets/README.md
+
 /profile.json
