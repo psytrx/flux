@@ -72,7 +72,7 @@ impl Pixel {
     };
 
     fn color(&self) -> glam::Vec3 {
-        assert!(self.weight_sum != 0.0);
+        debug_assert!(self.weight_sum != 0.0);
         self.spectrum_sum / self.weight_sum
     }
 }
