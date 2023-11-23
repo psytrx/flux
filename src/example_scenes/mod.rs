@@ -6,17 +6,63 @@ use crate::{
         mat_util::{dielectric, matte, metal},
         prim_util::{floor, sphere},
     },
-    flux::{cameras::*, textures::ImageTexture, *},
+    flux::{cameras::*, shapes::Quad, textures::ImageTexture, *},
 };
 
+#[allow(dead_code)]
 pub enum ExampleScene {
     MaterialDemo,
+    CornellBox,
 }
 
 pub fn load_example_scene(scene: ExampleScene) -> Scene {
     match scene {
         ExampleScene::MaterialDemo => material_demo(),
+        ExampleScene::CornellBox => cornell_box(),
     }
+}
+
+fn cornell_box() -> Scene {
+    let primitives = {
+        let white = matte(0.73, 0.73, 0.73);
+        let red = matte(0.65, 0.05, 0.05);
+        let green = matte(0.12, 0.45, 0.15);
+
+        let size = 100.0;
+        let dfl = glam::vec3(-size, -size, -size);
+        let dfr = glam::vec3(size, -size, -size);
+        let dbr = glam::vec3(size, -size, size);
+        let dbl = glam::vec3(-size, -size, size);
+        let ufl = glam::vec3(-size, size, -size);
+        let ufr = glam::vec3(size, size, -size);
+        let ubr = glam::vec3(size, size, size);
+        let ubl = glam::vec3(-size, size, size);
+
+        let floor = Primitive::new(Box::new(Quad::new([dfl, dfr, dbr, dbl])), white.clone());
+        let ceiling = Primitive::new(Box::new(Quad::new([ufl, ufr, ubr, ubl])), white.clone());
+        let left_wall = Primitive::new(Box::new(Quad::new([dfl, dbl, ubl, ufl])), red.clone());
+        let right_wall = Primitive::new(Box::new(Quad::new([dfr, dbr, ubr, ufr])), green.clone());
+        let back_wall = Primitive::new(Box::new(Quad::new([dbl, dbr, ubr, ubl])), white.clone());
+
+        vec![floor, ceiling, left_wall, right_wall, back_wall]
+    };
+
+    let camera = {
+        let look_from = glam::vec3(0.0, 0.0, -320.0);
+        let look_at = glam::Vec3::ZERO;
+        Box::new(PerspectiveCamera::new(
+            glam::uvec2(1024, 1024),
+            look_from,
+            look_at,
+            50.0,
+            0.025,
+            look_at.distance(look_from),
+        ))
+    };
+
+    let background = ImageTexture::new(image::open("./assets/hdr/ennis.exr").unwrap());
+
+    Scene::new(primitives, camera, background)
 }
 
 fn material_demo() -> Scene {

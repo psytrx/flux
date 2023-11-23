@@ -18,7 +18,7 @@ fn main() -> anyhow::Result<()> {
     let scene = {
         log::debug!("loading scene...");
         measure_time::trace_time!("loading scene");
-        load_example_scene(ExampleScene::MaterialDemo)
+        load_example_scene(ExampleScene::CornellBox)
     };
 
     let film = {
