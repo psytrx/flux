@@ -6,7 +6,12 @@ use crate::{
         mat_util::{dielectric, matte, metal},
         prim_util::{floor, sphere},
     },
-    flux::{cameras::*, shapes::Quad, textures::ImageTexture, *},
+    flux::{
+        cameras::*,
+        shapes::Quad,
+        textures::{ConstantTexture, ImageTexture},
+        *,
+    },
 };
 
 #[allow(dead_code)]
@@ -60,7 +65,7 @@ fn cornell_box() -> Scene {
         ))
     };
 
-    let background = ImageTexture::new(image::open("./assets/hdr/ennis.exr").unwrap());
+    let background = Box::new(ConstantTexture::new(glam::Vec3::ZERO));
 
     Scene::new(primitives, camera, background)
 }
@@ -101,7 +106,9 @@ fn material_demo() -> Scene {
         ))
     };
 
-    let background = ImageTexture::new(image::open("./assets/hdr/ennis.exr").unwrap());
+    let background = Box::new(ImageTexture::new(
+        image::open("./assets/hdr/ennis.exr").unwrap(),
+    ));
 
     Scene::new(primitives, camera, background)
 }
