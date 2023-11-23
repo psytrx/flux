@@ -13,12 +13,10 @@ pub mod shapes;
 pub use film::*;
 pub use primitive::*;
 use ray::*;
+use samplers::Sampler;
 pub use scene::*;
 
-use self::samplers::{Sampler, UniformRandomSampler};
-
-pub fn render_film(scene: &Scene, max_depth: u32) -> Film {
-    let sampler = UniformRandomSampler::new(64);
+pub fn render_film(scene: &Scene, sampler: impl Sampler, max_depth: u32) -> Film {
     let mut rng = <rand::rngs::StdRng as rand::SeedableRng>::seed_from_u64(0);
 
     let resolution = scene.camera.resoltuion();

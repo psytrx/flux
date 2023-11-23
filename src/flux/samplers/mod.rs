@@ -1,6 +1,8 @@
+mod stratified;
 mod uniform;
 
-pub use uniform::*;
+pub use stratified::*;
+
 
 pub trait Sampler {
     fn camera_samples(

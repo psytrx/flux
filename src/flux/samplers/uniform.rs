@@ -4,6 +4,7 @@ pub struct UniformRandomSampler {
     pub samples_per_pixel: usize,
 }
 
+#[allow(dead_code)]
 impl UniformRandomSampler {
     pub fn new(samples_per_pixel: usize) -> Self {
         Self { samples_per_pixel }
