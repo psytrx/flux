@@ -1,9 +1,12 @@
-use flux::{Denoiser, Film};
+use flux::{integrators::Integrator, Denoiser, Film};
 use image::Rgb32FImage;
 
 use crate::{
     example_scenes::{load_example_scene, ExampleScene},
-    flux::{integrators::PathTracingIntegrator, samplers::StratifiedSampler},
+    flux::{
+        integrators::{AlbedoIntegrator, NormalIntegrator, PathTracingIntegrator},
+        samplers::StratifiedSampler,
+    },
 };
 
 mod example_scenes;
@@ -29,29 +32,53 @@ fn main() -> anyhow::Result<()> {
 
     {
         let raw: Rgb32FImage = film.clone().into();
-        raw.save("./output/output_raw.exr")?;
+        raw.save("./output/beauty_raw.exr")?;
     };
 
     let denoised = {
         log::debug!("denoising film...");
         measure_time::trace_time!("denoising film");
 
-        let albedo = Film::new(film.resolution);
-        let albedo_img: Rgb32FImage = albedo.clone().into();
-        albedo_img.save("./output/output_albedo.exr")?;
+        let albedo = {
+            measure_time::trace_time!("rendering albedo aux channel");
+            let albedo = render_aux_channel(&scene, AlbedoIntegrator::new());
+            let albedo_img: Rgb32FImage = albedo.clone().into();
+            albedo_img.save("./output/albedo_raw.exr")?;
+            albedo
+        };
 
-        let normal = Film::new(film.resolution);
-        let normal_img: Rgb32FImage = normal.clone().into();
-        normal_img.save("./output/output_normal.exr")?;
+        let normal = {
+            measure_time::trace_time!("rendering normal aux channel");
+            let normal = render_aux_channel(&scene, NormalIntegrator::new());
+            let normal_img: Rgb32FImage = normal.clone().into();
+            normal_img.save("./output/normal_raw.exr")?;
+
+            // OIDN expects normal vectors in the range [-1, 1]
+            normal.mapped_spectra(|v| 2.0 * v - glam::Vec3::ONE)
+        };
 
         let denoiser = Denoiser::new(film.resolution, &albedo, &normal);
+
+        let albedo_denoised_img: Rgb32FImage = denoiser.albedo_denoised.clone().into();
+        albedo_denoised_img.save("./output/albedo_denoised.exr")?;
+
+        let normal_denoised_img: Rgb32FImage = denoiser
+            .normal_denoised
+            // map the denoised normals back to the range [0, 1]
+            .mapped_spectra(|v| 0.5 * (v + glam::Vec3::ONE))
+            .into();
+        normal_denoised_img.save("./output/normal_denoised.exr")?;
+
         denoiser.denoise(&film)
     };
 
-    {
-        let raw: Rgb32FImage = denoised.clone().into();
-        raw.save("./output/output_denoised.exr")?;
-    }
+    let denoised_img: Rgb32FImage = denoised.clone().into();
+    denoised_img.save("./output/beauty_denoised.exr")?;
 
     Ok(())
+}
+
+fn render_aux_channel(scene: &flux::Scene, integrator: impl Integrator) -> Film {
+    let sampler = StratifiedSampler::new(1_usize.pow(2));
+    flux::render_film(scene, sampler, integrator)
 }

@@ -1,5 +1,9 @@
+mod albedo;
+mod normal;
 mod path;
 
+pub use albedo::*;
+pub use normal::*;
 pub use path::*;
 
 use super::{ray::Ray, Scene};

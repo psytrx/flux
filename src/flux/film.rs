@@ -57,7 +57,7 @@ impl Film {
         pixel.weight_sum += 1.0;
     }
 
-    fn mapped_spectra(&self, f: impl Fn(glam::Vec3) -> glam::Vec3) -> Film {
+    pub fn mapped_spectra(&self, f: impl Fn(glam::Vec3) -> glam::Vec3) -> Film {
         let pixels = self.pixels.iter().map(|pixel| f(pixel.color())).collect();
         Self::from_spectra(self.resolution, pixels)
     }
