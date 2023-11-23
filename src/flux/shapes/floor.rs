@@ -42,7 +42,7 @@ unsafe extern "C" fn bounds_fn(args: *const embree4_sys::RTCBoundsFunctionArgume
 
 unsafe extern "C" fn intersect_fn(args: *const embree4_sys::RTCIntersectFunctionNArguments) {
     let args = *args;
-    assert_eq!(1, args.N);
+    debug_assert_eq!(1, args.N);
 
     let valid = *args.valid;
     if valid == 0 {
@@ -51,6 +51,10 @@ unsafe extern "C" fn intersect_fn(args: *const embree4_sys::RTCIntersectFunction
 
     let ray_hit_ptr = args.rayhit as *mut embree4_sys::RTCRayHit;
     let ray_hit = &mut *ray_hit_ptr;
+
+    if ray_hit.ray.dir_y == 0.0 {
+        return;
+    }
 
     let t = -ray_hit.ray.org_y / ray_hit.ray.dir_y;
     if t < ray_hit.ray.tnear || t > ray_hit.ray.tfar {
