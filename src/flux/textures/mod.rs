@@ -9,14 +9,14 @@ impl ImageTexture {
         // build a directly accessible color cache
         let (width, height) = image::GenericImageView::dimensions(&img);
         let mut cache = vec![glam::Vec3::ZERO; (width * height) as usize];
-        for (x, y, pixel) in image::GenericImageView::pixels(&img) {
-            let index = (y * width + x) as usize;
-            let color = match pixel {
-                image::Rgba([r, g, b, _]) => {
-                    glam::vec3((r as f32) / 255.0, (g as f32) / 255.0, (b as f32) / 255.0)
+        match img {
+            image::DynamicImage::ImageRgb32F(img) => {
+                for (x, y, image::Rgb([r, g, b])) in image::GenericImageView::pixels(&img) {
+                    let index = (y * width + x) as usize;
+                    cache[index] = glam::vec3(r, g, b);
                 }
-            };
-            cache[index] = color;
+            }
+            _ => todo!(),
         }
         Self {
             width,
