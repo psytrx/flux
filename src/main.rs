@@ -19,7 +19,7 @@ fn main() -> anyhow::Result<()> {
     };
 
     let film = {
-        let sampler = StratifiedSampler::new(16);
+        let sampler = StratifiedSampler::new(4_usize.pow(2));
 
         log::debug!("rendering film...");
         measure_time::trace_time!("rendering film");

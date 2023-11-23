@@ -6,7 +6,7 @@ use crate::{
         mat_util::{dielectric, matte, metal},
         prim_util::{floor, sphere},
     },
-    flux::{cameras::*, *},
+    flux::{cameras::*, textures::ImageTexture, *},
 };
 
 pub enum ExampleScene {
@@ -43,7 +43,7 @@ fn material_demo() -> Scene {
     };
 
     let camera = {
-        let look_from = glam::vec3(0.0, 2.5, -6.0);
+        let look_from = glam::vec3(0.0, 3.0, -6.0);
         let look_at = glam::vec3(0.0, 0.5, 0.0);
         Box::new(PerspectiveCamera::new(
             glam::uvec2(1024, 576),
@@ -55,5 +55,7 @@ fn material_demo() -> Scene {
         ))
     };
 
-    Scene::new(primitives, camera)
+    let background = ImageTexture::new(image::open("./assets/hdr/hdr_04.jpg").unwrap());
+
+    Scene::new(primitives, camera, background)
 }
