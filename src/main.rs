@@ -3,7 +3,7 @@ use image::Rgb32FImage;
 
 use crate::{
     example_scenes::{load_example_scene, ExampleScene},
-    flux::samplers::StratifiedSampler,
+    flux::{integrators::PathTracingIntegrator, samplers::StratifiedSampler},
 };
 
 mod example_scenes;
@@ -20,10 +20,11 @@ fn main() -> anyhow::Result<()> {
 
     let film = {
         let sampler = StratifiedSampler::new(4_usize.pow(2));
+        let integrator = PathTracingIntegrator::new(32);
 
         log::debug!("rendering film...");
         measure_time::trace_time!("rendering film");
-        flux::render_film(&scene, sampler, 32).gamma_corrected(2.0)
+        flux::render_film(&scene, sampler, integrator).gamma_corrected(2.0)
     };
 
     {

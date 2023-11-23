@@ -2,6 +2,7 @@ pub mod accel;
 pub mod cameras;
 mod denoise;
 mod film;
+pub mod integrators;
 mod interaction;
 pub mod materials;
 mod primitive;
@@ -15,11 +16,12 @@ pub mod textures;
 pub use denoise::*;
 pub use film::*;
 pub use primitive::*;
-use ray::*;
 use samplers::Sampler;
 pub use scene::*;
 
-pub fn render_film(scene: &Scene, sampler: impl Sampler, max_depth: u32) -> Film {
+use self::integrators::Integrator;
+
+pub fn render_film(scene: &Scene, sampler: impl Sampler, integrator: impl Integrator) -> Film {
     let mut rng = <rand::rngs::StdRng as rand::SeedableRng>::seed_from_u64(0);
 
     let resolution = scene.camera.resoltuion();
@@ -32,46 +34,13 @@ pub fn render_film(scene: &Scene, sampler: impl Sampler, max_depth: u32) -> Film
 
             for sample in cam_samples {
                 let ray = scene.camera.ray(&sample);
-                let li = ray_color(scene, &ray, &mut rng, max_depth);
+                let li = integrator.li(scene, &ray, &mut rng);
                 film.add_sample(p_raster, li);
             }
         }
     }
 
     film
-}
-
-fn ray_color(scene: &Scene, ray: &Ray, rng: &mut rand::rngs::StdRng, depth: u32) -> glam::Vec3 {
-    if depth == 0 {
-        glam::Vec3::ZERO
-    } else {
-        match scene.aggregate.intersect(ray) {
-            Some(int) => match int.material.scatter(ray, &int, rng) {
-                Some(srec) => {
-                    let scattered = int.spawn_ray(srec.direction);
-                    srec.attenuation * ray_color(scene, &scattered, rng, depth - 1)
-                }
-                None => glam::Vec3::ZERO,
-            },
-            None => background(scene, ray),
-        }
-    }
-}
-
-fn background(scene: &Scene, ray: &Ray) -> glam::Vec3 {
-    let oc = ray.direction.normalize();
-
-    // let a = 0.5 * (unit_direction.y + 1.0);
-    // (1.0 - a) * glam::Vec3::ONE + a * glam::vec3(0.5, 0.7, 1.0)
-
-    let theta = (-oc.y).acos();
-    let phi = (-oc.z).atan2(oc.x) + std::f32::consts::PI;
-    let uv = glam::vec2(
-        phi / (2.0 * std::f32::consts::PI),
-        theta / std::f32::consts::PI,
-    );
-
-    scene.background.evaluate(uv)
 }
 
 fn uniform_sample_disk(u: glam::Vec2) -> glam::Vec2 {
