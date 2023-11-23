@@ -46,7 +46,7 @@ fn material_demo() -> Scene {
         let look_from = glam::vec3(0.0, 3.0, -6.0);
         let look_at = glam::vec3(0.0, 0.5, 0.0);
         Box::new(PerspectiveCamera::new(
-            glam::uvec2(1024, 576),
+            glam::uvec2(800, 450),
             look_from,
             look_at,
             65.0,
@@ -55,7 +55,7 @@ fn material_demo() -> Scene {
         ))
     };
 
-    let background = ImageTexture::new(image::open("./assets/hdr/hdr_04.jpg").unwrap());
+    let background = ImageTexture::new(image::open("./assets/hdr/ennis.exr").unwrap());
 
     Scene::new(primitives, camera, background)
 }
