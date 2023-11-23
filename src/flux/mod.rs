@@ -25,7 +25,7 @@ pub fn render_film(scene: &Scene, max_depth: u32) -> Film {
 
     let mut film = Film::new(resolution);
     for y in 0..resolution.y {
-        for x in 0..resolution.y {
+        for x in 0..resolution.x {
             let p_raster = glam::vec2(x as f32, y as f32);
             let cam_samples = sampler.camera_samples(p_raster, &mut rng);
 
